@@ -45,6 +45,8 @@
     "max_az": "Az max",
     "min_el": "El min",
     "max_el": "El max",
+    "az_tolerance": "Bande morte d'azimut",
+    "el_tolerance": "Bande morte d'élévation",
     "az_type": "Type Az",
     "az_endstop": "Butée Az",
     "cancel": "ANNULER",

@@ -231,6 +231,8 @@ class Rotators(Base):
     maxaz = Column(Integer, nullable=False)
     minel = Column(Integer, nullable=False)
     maxel = Column(Integer, nullable=False)
+    aztolerance = Column(Float, nullable=False, default=2.0)
+    eltolerance = Column(Float, nullable=False, default=2.0)
     added = Column(AwareDateTime, nullable=False, default=datetime.now(timezone.utc))
     updated = Column(
         AwareDateTime,

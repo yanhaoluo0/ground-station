@@ -45,6 +45,8 @@
     "max_az": "Az Max",
     "min_el": "El Min",
     "max_el": "El Max",
+    "az_tolerance": "Banda morta azimut",
+    "el_tolerance": "Banda morta elevazione",
     "az_type": "Tipo Az",
     "az_endstop": "Fine Corsa Az",
     "cancel": "Annulla",

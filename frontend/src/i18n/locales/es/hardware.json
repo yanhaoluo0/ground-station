@@ -45,6 +45,8 @@
     "max_az": "Az máx",
     "min_el": "El mín",
     "max_el": "El máx",
+    "az_tolerance": "Banda muerta de azimut",
+    "el_tolerance": "Banda muerta de elevación",
     "az_type": "Tipo Az",
     "az_endstop": "Tope Az",
     "cancel": "CANCELAR",

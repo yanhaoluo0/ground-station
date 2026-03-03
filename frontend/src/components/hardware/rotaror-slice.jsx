@@ -91,6 +91,8 @@ const defaultRotator = {
     maxaz: 360,
     minel: 0,
     maxel: 90,
+    aztolerance: 2.0,
+    eltolerance: 2.0,
 };
 
 const rotatorsSlice = createSlice({

@@ -29,6 +29,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import {useSocket} from "../common/socket.jsx";
 import { toast } from '../../utils/toast-with-timestamp.jsx';
 import {useDispatch, useSelector} from 'react-redux';
@@ -80,6 +81,8 @@ export default function AntennaRotatorTable() {
         {field: 'maxaz', headerName: t('rotator.max_az'), type: 'number', flex: 1, minWidth: 80},
         {field: 'minel', headerName: t('rotator.min_el'), type: 'number', flex: 1, minWidth: 80},
         {field: 'maxel', headerName: t('rotator.max_el'), type: 'number', flex: 1, minWidth: 80},
+        {field: 'aztolerance', headerName: t('rotator.az_tolerance'), type: 'number', flex: 1, minWidth: 110},
+        {field: 'eltolerance', headerName: t('rotator.el_tolerance'), type: 'number', flex: 1, minWidth: 110},
     ];
 
     // useEffect(() => {
@@ -146,6 +149,20 @@ export default function AntennaRotatorTable() {
         && Number(formValues.minel) > Number(formValues.maxel)) {
         validationErrors.minel = 'Min elevation must be <= max elevation';
         validationErrors.maxel = 'Min elevation must be <= max elevation';
+    }
+    if (isEmptyValue(formValues.aztolerance)) {
+        validationErrors.aztolerance = 'Required';
+    } else if (Number.isNaN(Number(formValues.aztolerance))) {
+        validationErrors.aztolerance = 'Must be a number';
+    } else if (Number(formValues.aztolerance) < 0) {
+        validationErrors.aztolerance = 'Must be >= 0';
+    }
+    if (isEmptyValue(formValues.eltolerance)) {
+        validationErrors.eltolerance = 'Required';
+    } else if (Number.isNaN(Number(formValues.eltolerance))) {
+        validationErrors.eltolerance = 'Must be a number';
+    } else if (Number(formValues.eltolerance) < 0) {
+        validationErrors.eltolerance = 'Must be >= 0';
     }
     const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
@@ -243,7 +260,7 @@ export default function AntennaRotatorTable() {
                             >
                                 {isEditing ? t('rotator.edit_dialog_title') : t('rotator.add_dialog_title')}
                             </DialogTitle>
-                            <DialogContent sx={{ bgcolor: 'background.paper', px: 3, py: 3 }}>
+                            <DialogContent sx={{ bgcolor: 'background.paper', px: 3, py: 3, pt: '1em' }}>
                                 <Stack spacing={2} sx={{ mt: 3 }}>
                                     <TextField
                                         name="name"
@@ -323,6 +340,63 @@ export default function AntennaRotatorTable() {
                                         error={Boolean(validationErrors.maxel)}
                                         required
                                         InputProps={{ endAdornment: <InputAdornment position="end">°</InputAdornment> }}
+                                    />
+                                    <Alert severity="warning" sx={{ mt: 0.5 }}>
+                                        Tolerance settings control the deadband for rotator movement. Setting these
+                                        values too low can cause excessive commands, jitter, or errors on some hardware.
+                                        Default safe value is 2°.
+                                    </Alert>
+                                    <TextField
+                                        name="aztolerance"
+                                        label={t('rotator.az_tolerance')}
+                                        type="number"
+                                        fullWidth
+                                        size="small"
+                                        onChange={handleChange}
+                                        value={formValues.aztolerance}
+                                        error={Boolean(validationErrors.aztolerance)}
+                                        helperText={validationErrors.aztolerance ? validationErrors.aztolerance : 'Lower values may stress some rotators.'}
+                                        required
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <WarningAmberOutlinedIcon
+                                                            fontSize="small"
+                                                            color="warning"
+                                                            sx={{ opacity: 0.7 }}
+                                                        />
+                                                        <span>°</span>
+                                                    </Box>
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                    <TextField
+                                        name="eltolerance"
+                                        label={t('rotator.el_tolerance')}
+                                        type="number"
+                                        fullWidth
+                                        size="small"
+                                        onChange={handleChange}
+                                        value={formValues.eltolerance}
+                                        error={Boolean(validationErrors.eltolerance)}
+                                        helperText={validationErrors.eltolerance ? validationErrors.eltolerance : 'Lower values may stress some rotators.'}
+                                        required
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <WarningAmberOutlinedIcon
+                                                            fontSize="small"
+                                                            color="warning"
+                                                            sx={{ opacity: 0.7 }}
+                                                        />
+                                                        <span>°</span>
+                                                    </Box>
+                                                </InputAdornment>
+                                            )
+                                        }}
                                     />
                                 </Stack>
                             </DialogContent>

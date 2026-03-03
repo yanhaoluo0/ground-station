@@ -71,6 +71,8 @@ async def add_rotator(session: AsyncSession, data: dict) -> dict:
                 maxaz=data["maxaz"],
                 minel=data["minel"],
                 maxel=data["maxel"],
+                aztolerance=data.get("aztolerance", 2.0),
+                eltolerance=data.get("eltolerance", 2.0),
                 added=now,
                 updated=now,
             )

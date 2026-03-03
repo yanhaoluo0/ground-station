@@ -45,6 +45,8 @@
     "max_az": "Μέγ. Az",
     "min_el": "Ελάχ. El",
     "max_el": "Μέγ. El",
+    "az_tolerance": "Νεκρή ζώνη αζιμούθιου",
+    "el_tolerance": "Νεκρή ζώνη ανύψωσης",
     "az_type": "Τύπος Az",
     "az_endstop": "Τερματικό Az",
     "cancel": "ΑΚΥΡΩΣΗ",

@@ -45,6 +45,8 @@
     "max_az": "Maximum Azimuth",
     "min_el": "Minimum Elevation",
     "max_el": "Maximum Elevation",
+    "az_tolerance": "Azimuth Deadband",
+    "el_tolerance": "Elevation Deadband",
     "az_type": "Az Type",
     "az_endstop": "Az Endstop",
     "cancel": "Cancel",

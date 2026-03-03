@@ -45,6 +45,8 @@
     "max_az": "Max Az",
     "min_el": "Min El",
     "max_el": "Max El",
+    "az_tolerance": "Azimut-Totband",
+    "el_tolerance": "Elevations-Totband",
     "az_type": "Az-Typ",
     "az_endstop": "Az-Endanschlag",
     "cancel": "ABBRECHEN",

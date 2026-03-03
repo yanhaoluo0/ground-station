@@ -110,6 +110,8 @@ class GeminiTranscriptionWorker(TranscriptionWorker):
             # Create session config for audio transcription
             config: dict = {
                 "response_modalities": ["AUDIO"],
+                # Use input transcription stream for clean, narration-free text.
+                "input_audio_transcription": {},
             }
 
             # Build system instruction based on language and translation settings
@@ -248,36 +250,58 @@ class GeminiTranscriptionWorker(TranscriptionWorker):
                     if not response:
                         continue
 
-                    # Process server content (transcription results)
-                    if response.server_content and response.server_content.model_turn:
-                        is_complete = getattr(response.server_content, "turn_complete", False)
+                    # Prefer input transcription stream to avoid narrated assistant output.
+                    server_content = getattr(response, "server_content", None)
+                    input_transcription = None
+                    if server_content:
+                        # SDKs differ: attributes or dict keys (snake_case/camelCase).
+                        if hasattr(server_content, "input_transcription"):
+                            input_transcription = server_content.input_transcription
+                        elif isinstance(server_content, dict):
+                            input_transcription = server_content.get(
+                                "input_transcription"
+                            ) or server_content.get("inputTranscription")
+                    if input_transcription:
+                        if isinstance(input_transcription, dict):
+                            text = (input_transcription.get("text") or "").strip()
+                        else:
+                            text = (getattr(input_transcription, "text", None) or "").strip()
+                        if text:
+                            if isinstance(input_transcription, dict):
+                                is_complete = bool(input_transcription.get("finished"))
+                            else:
+                                is_complete = bool(getattr(input_transcription, "finished", False))
+                            if not is_complete:
+                                if server_content:
+                                    is_complete = getattr(
+                                        server_content, "turn_complete", False
+                                    ) or (
+                                        isinstance(server_content, dict)
+                                        and server_content.get("turn_complete")
+                                    )
 
-                        for part in response.server_content.model_turn.parts:
-                            if part.text:
-                                text = part.text.strip()
-
-                                # Determine language
-                                if self.translate_to and self.translate_to != "none":
-                                    # Translation mode - use source language
-                                    if self.language and self.language != "auto":
-                                        detected_language = self.language
-                                    else:
-                                        detected_language = "unknown"
-                                elif self.language and self.language != "auto":
+                            # Determine language
+                            if self.translate_to and self.translate_to != "none":
+                                # Translation mode - use source language
+                                if self.language and self.language != "auto":
                                     detected_language = self.language
                                 else:
-                                    # Auto-detect using langdetect
                                     detected_language = "unknown"
-                                    if LANGDETECT_AVAILABLE and text:
-                                        try:
-                                            detected_language = detect(text)
-                                        except LangDetectException:
-                                            detected_language = "unknown"
+                            elif self.language and self.language != "auto":
+                                detected_language = self.language
+                            else:
+                                # Auto-detect using langdetect
+                                detected_language = "unknown"
+                                if LANGDETECT_AVAILABLE and text:
+                                    try:
+                                        detected_language = detect(text)
+                                    except LangDetectException:
+                                        detected_language = "unknown"
 
-                                # Emit transcription
-                                await self._emit_transcription(
-                                    text=text, language=detected_language, is_final=is_complete
-                                )
+                            # Emit transcription
+                            await self._emit_transcription(
+                                text=text, language=detected_language, is_final=is_complete
+                            )
 
                 except Exception as e:
                     error_str = str(e).lower()

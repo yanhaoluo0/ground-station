@@ -45,6 +45,8 @@
     "max_az": "Max Az",
     "min_el": "Min El",
     "max_el": "Max El",
+    "az_tolerance": "Azimut dodeband",
+    "el_tolerance": "Elevatie dodeband",
     "az_type": "Az Type",
     "az_endstop": "Az Eindstop",
     "cancel": "ANNULEREN",

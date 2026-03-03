@@ -44,6 +44,8 @@ class RotatorHandler:
             maxaz = self.tracker.rotator_details.get("maxaz")
             minel = self.tracker.rotator_details.get("minel")
             maxel = self.tracker.rotator_details.get("maxel")
+            az_tolerance = self.tracker.rotator_details.get("aztolerance")
+            el_tolerance = self.tracker.rotator_details.get("eltolerance")
 
             if minaz is not None and maxaz is not None:
                 self.tracker.azimuth_limits = (minaz, maxaz)
@@ -56,6 +58,14 @@ class RotatorHandler:
                 self.tracker.rotator_data["minel"] = minel
                 self.tracker.rotator_data["maxel"] = maxel
                 logger.debug(f"Updated elevation limits to: {self.tracker.elevation_limits}")
+
+            if az_tolerance is not None:
+                self.tracker.az_tolerance = float(az_tolerance)
+                logger.debug(f"Updated azimuth tolerance to: {self.tracker.az_tolerance}")
+
+            if el_tolerance is not None:
+                self.tracker.el_tolerance = float(el_tolerance)
+                logger.debug(f"Updated elevation tolerance to: {self.tracker.el_tolerance}")
 
     async def connect_to_rotator(self):
         """Connect to the rotator hardware."""

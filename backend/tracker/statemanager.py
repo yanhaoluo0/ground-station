@@ -250,7 +250,6 @@ class StateManager:
     def cleanup_data_states(self):
         """Clean up temporary state flags."""
         # Clean up rotator_data
-        self.tracker.rotator_data["slewing"] = False
         self.tracker.rotator_data["error"] = False
         # Note: outofbounds, minelevation, maxelevation, minazimuth, maxazimuth
         # are NOT reset here - they persist until next position check

@@ -19,6 +19,7 @@ Handles all rotator-related operations including connection, positioning, and li
 """
 
 import logging
+import time
 
 from common.constants import DictKeys, SocketEvents, TrackingEvents
 from controllers.rotator import RotatorController
@@ -36,6 +37,46 @@ class RotatorHandler:
         :param tracker: Reference to the parent SatelliteTracker instance
         """
         self.tracker = tracker
+
+    def _reset_slew_state(self):
+        """Reset in-flight rotator command tracking."""
+        self.tracker.rotator_command_state.update(
+            {
+                "in_flight": False,
+                "target_az": None,
+                "target_el": None,
+                "last_command_ts": 0.0,
+                "settle_hits": 0,
+            }
+        )
+        self.tracker.rotator_data["slewing"] = False
+
+    def _target_within_tolerance(self, current_az, current_el, target_az, target_el) -> bool:
+        az_tol = float(self.tracker.az_tolerance)
+        el_tol = float(self.tracker.el_tolerance)
+        return bool(abs(current_az - target_az) <= az_tol and abs(current_el - target_el) <= el_tol)
+
+    async def _issue_rotator_command(self, target_az, target_el):
+        """Send a single rotator command and update in-flight state."""
+        position_gen = self.tracker.rotator_controller.set_position(target_az, target_el)
+        self.tracker.rotator_data["stopped"] = False
+
+        try:
+            az, el, is_slewing = await anext(position_gen)
+            self.tracker.rotator_data["slewing"] = is_slewing
+            self.tracker.rotator_command_state.update(
+                {
+                    "in_flight": is_slewing,
+                    "target_az": target_az,
+                    "target_el": target_el,
+                    "last_command_ts": time.time(),
+                    "settle_hits": 0,
+                }
+            )
+            logger.debug(f"Current position: AZ={az}°, EL={el}°, slewing={is_slewing}")
+        except StopAsyncIteration:
+            logger.info(f"Slewing to AZ={target_az}° EL={target_el}° complete")
+            self._reset_slew_state()
 
     def update_rotator_limits(self):
         """Update rotator limits from rotator_details if available."""
@@ -162,32 +203,38 @@ class RotatorHandler:
         self.tracker.rotator_data["maxazimuth"] = False
 
         if new == "connected":
+            self._reset_slew_state()
             await self.connect_to_rotator()
             self.tracker.rotator_data["connected"] = True
             self.tracker.rotator_data["stopped"] = True
             self.tracker.rotator_data["parked"] = False
         elif new == "tracking":
+            self._reset_slew_state()
             await self.connect_to_rotator()
             self.tracker.rotator_data["tracking"] = True
             self.tracker.rotator_data["stopped"] = False
             self.tracker.rotator_data["parked"] = False
         elif new == "stopped":
+            self._reset_slew_state()
             self.tracker.rotator_data["tracking"] = False
             self.tracker.rotator_data["slewing"] = False
             self.tracker.rotator_data["stopped"] = True
             self.tracker.rotator_data["parked"] = False
         elif new == "disconnected":
+            self._reset_slew_state()
             await self.disconnect_rotator()
             self.tracker.rotator_data["tracking"] = False
             self.tracker.rotator_data["stopped"] = True
             self.tracker.rotator_data["parked"] = False
         elif new == "parked":
+            self._reset_slew_state()
             await self.park_rotator()
         else:
             logger.error(f"Unknown tracking state: {new}")
 
     async def disconnect_rotator(self):
         """Disconnect from rotator."""
+        self._reset_slew_state()
         if self.tracker.rotator_controller is not None:
             logger.info(
                 f"Disconnecting from rotator at "
@@ -213,6 +260,7 @@ class RotatorHandler:
 
     async def park_rotator(self):
         """Park the rotator."""
+        self._reset_slew_state()
         self.tracker.rotator_data.update({"tracking": False, "slewing": False})
 
         try:
@@ -330,33 +378,63 @@ class RotatorHandler:
             and not self.tracker.rotator_data["outofbounds"]
             and not self.tracker.rotator_data["minelevation"]
         ):
+            # Clamp target position to rotator limits
+            target_az = max(
+                self.tracker.azimuth_limits[0],
+                min(skypoint[0], self.tracker.azimuth_limits[1]),
+            )
+            target_el = max(
+                self.tracker.elevation_limits[0],
+                min(skypoint[1], self.tracker.elevation_limits[1]),
+            )
 
-            # Check if movement is needed
-            if (
-                abs(skypoint[0] - self.tracker.rotator_data["az"]) > self.tracker.az_tolerance
-                or abs(skypoint[1] - self.tracker.rotator_data["el"]) > self.tracker.el_tolerance
-            ):
-                # Clamp target position to rotator limits
-                target_az = max(
-                    self.tracker.azimuth_limits[0],
-                    min(skypoint[0], self.tracker.azimuth_limits[1]),
+            current_az = self.tracker.rotator_data["az"]
+            current_el = self.tracker.rotator_data["el"]
+            state = self.tracker.rotator_command_state
+
+            # No command currently in flight: send only if needed.
+            if not state["in_flight"]:
+                needs_move = not self._target_within_tolerance(
+                    current_az, current_el, target_az, target_el
                 )
-                target_el = max(
-                    self.tracker.elevation_limits[0],
-                    min(skypoint[1], self.tracker.elevation_limits[1]),
+                if needs_move:
+                    await self._issue_rotator_command(target_az, target_el)
+                else:
+                    self.tracker.rotator_data["slewing"] = False
+
+            # Command in flight: avoid duplicate command spam while slewing.
+            else:
+                active_target_az = state["target_az"]
+                active_target_el = state["target_el"]
+                if active_target_az is None or active_target_el is None:
+                    self._reset_slew_state()
+                    return
+
+                reached_active_target = self._target_within_tolerance(
+                    current_az, current_el, active_target_az, active_target_el
                 )
+                if reached_active_target:
+                    state["settle_hits"] += 1
+                    if state["settle_hits"] >= self.tracker.rotator_settle_hits_required:
+                        self._reset_slew_state()
+                else:
+                    state["settle_hits"] = 0
+                    self.tracker.rotator_data["slewing"] = True
 
-                position_gen = self.tracker.rotator_controller.set_position(target_az, target_el)
-                self.tracker.rotator_data["stopped"] = False
+                # Retarget if the sky target moved far enough, or refresh on watchdog timeout.
+                target_drift = max(
+                    abs(target_az - active_target_az),
+                    abs(target_el - active_target_el),
+                )
+                command_age = time.time() - float(state["last_command_ts"] or 0.0)
+                should_retarget = target_drift >= self.tracker.rotator_retarget_threshold_deg
+                should_refresh = command_age >= self.tracker.rotator_command_refresh_sec
 
-                try:
-                    az, el, is_slewing = await anext(position_gen)
-                    self.tracker.rotator_data["slewing"] = is_slewing
-                    logger.debug(f"Current position: AZ={az}°, EL={el}°, slewing={is_slewing}")
-                except StopAsyncIteration:
-                    logger.info(f"Slewing to AZ={target_az}° EL={target_el}° complete")
+                if should_retarget or should_refresh:
+                    await self._issue_rotator_command(target_az, target_el)
 
         elif self.tracker.rotator_controller and self.tracker.current_rotator_state != "tracking":
+            self._reset_slew_state()
             # Handle nudge commands when not tracking
             if self.tracker.nudge_offset["az"] != 0 or self.tracker.nudge_offset["el"] != 0:
                 new_az = self.tracker.rotator_data["az"] + self.tracker.nudge_offset["az"]
@@ -372,14 +450,10 @@ class RotatorHandler:
                     min(new_el, self.tracker.elevation_limits[1]),
                 )
 
-                position_gen = self.tracker.rotator_controller.set_position(new_az, new_el)
-
-                try:
-                    az, el, is_slewing = await anext(position_gen)
-                    self.tracker.rotator_data["slewing"] = is_slewing
-                    logger.debug(f"Current position: AZ={az}°, EL={el}°, slewing={is_slewing}")
-                except StopAsyncIteration:
-                    logger.info(f"Slewing to AZ={az}° EL={el}° complete")
+                await self._issue_rotator_command(new_az, new_el)
+        else:
+            # No rotator available or movement blocked by limits.
+            self._reset_slew_state()
 
     async def update_hardware_position(self):
         """Update current rotator position."""

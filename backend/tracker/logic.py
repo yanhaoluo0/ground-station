@@ -131,6 +131,16 @@ class SatelliteTracker:
         # Operational state
         self.notified: Dict[str, bool] = {}
         self.nudge_offset = {"az": 0, "el": 0}
+        self.rotator_command_state: Dict[str, Any] = {
+            "in_flight": False,
+            "target_az": None,
+            "target_el": None,
+            "last_command_ts": 0.0,
+            "settle_hits": 0,
+        }
+        self.rotator_retarget_threshold_deg = 2.0
+        self.rotator_command_refresh_sec = 6.0
+        self.rotator_settle_hits_required = 2
 
         # Satellite data
         self.satellite_data: Dict[str, Any] = {}

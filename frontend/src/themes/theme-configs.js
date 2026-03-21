@@ -59,7 +59,7 @@ export const themeConfigs = {
         },
     },
 
-    'dark-neutral': {
+    'slate-blue': {
         mode: 'dark',
         primary: { main: '#4f9dff' },
         secondary: { main: '#7bd3b0' },
@@ -130,43 +130,6 @@ export const themeConfigs = {
             stop: '#c62828',
         },
     },
-
-    'high-contrast': {
-        mode: 'dark',
-        primary: { main: '#ffffff' },
-        secondary: { main: '#ffff00' },
-        success: { main: '#00ff00' },
-        warning: { main: '#ffff00' },
-        error: { main: '#ff0000' },
-        info: { main: '#00ffff' },
-        background: {
-            default: '#000000',
-            paper: '#1a1a1a',
-            elevated: '#2d2d2d',
-            titleBar: '#2d2d2d',
-        },
-        border: {
-            main: '#ffffff',
-            light: '#cccccc',
-            dark: '#888888',
-        },
-        overlay: {
-            light: 'rgba(255, 255, 255, 0.15)',
-            medium: 'rgba(255, 255, 255, 0.25)',
-            dark: 'rgba(0, 0, 0, 0.8)',
-        },
-        status: {
-            connected: '#00ff00',
-            connecting: '#ffff00',
-            disconnected: '#ff0000',
-            polling: '#ff8800',
-        },
-        action: {
-            play: '#00ff00',
-            stop: '#ff0000',
-        },
-    },
-
     night: {
         mode: 'dark',
         primary: { main: '#7f77c3' }, // Soft purple
@@ -200,42 +163,6 @@ export const themeConfigs = {
         action: {
             play: '#4caf50',
             stop: '#cf6679',
-        },
-    },
-
-    'sunset-orange': {
-        mode: 'dark',
-        primary: { main: '#ff6f00' }, // Deep orange
-        secondary: { main: '#ff9e40' }, // Light orange
-        success: { main: '#66bb6a' }, // Green
-        warning: { main: '#ffa726' }, // Orange
-        error: { main: '#ef5350' }, // Red
-        info: { main: '#42a5f5' }, // Blue
-        background: {
-            default: '#1a0f00', // Very dark brown/orange
-            paper: '#2d1810', // Dark warm brown
-            elevated: '#3d2418', // Medium warm brown
-            titleBar: '#3d2820',
-        },
-        border: {
-            main: '#4d3420',
-            light: '#5d4430',
-            dark: '#3d2410',
-        },
-        overlay: {
-            light: 'rgba(255, 111, 0, 0.08)',
-            medium: 'rgba(255, 111, 0, 0.15)',
-            dark: 'rgba(0, 0, 0, 0.6)',
-        },
-        status: {
-            connected: '#66bb6a',
-            connecting: '#ffa726',
-            disconnected: '#ef5350',
-            polling: '#ff9800',
-        },
-        action: {
-            play: '#66bb6a',
-            stop: '#ef5350',
         },
     },
 
@@ -278,53 +205,6 @@ export const themeConfigs = {
         action: {
             play: '#6fb300',
             stop: '#8b2500',
-        },
-    },
-
-    'terminal': {
-        mode: 'dark',
-        primary: { main: '#00ff41' }, // Matrix green
-        secondary: { main: '#ff00aa' }, // Surveillance pink
-        success: { main: '#00ff41' }, // Access granted
-        warning: { main: '#ffaa00' }, // Warning beacon
-        error: { main: '#ff0040' }, // System breach
-        info: { main: '#00aaff' }, // Data stream
-        background: {
-            default: '#000000', // Terminal void
-            paper: '#0d0d0d', // Command line
-            elevated: '#1a1a1a', // Elevated shell
-            titleBar: '#0a1a0a',
-        },
-        border: {
-            main: '#00ff41', // Scan line green
-            light: '#33ff66',
-            dark: '#008822',
-        },
-        overlay: {
-            light: 'rgba(0, 255, 65, 0.06)', // Terminal glow
-            medium: 'rgba(0, 255, 65, 0.12)',
-            dark: 'rgba(0, 0, 0, 0.85)', // Deep space
-        },
-        status: {
-            connected: '#00ff41', // Link established
-            connecting: '#ffaa00', // Handshake
-            disconnected: '#ff0040', // Connection lost
-            polling: '#00aaff', // Scanning
-        },
-        // Cyberpunk/hacker themed custom properties
-        terminal: {
-            cursor: '#00ff41',
-            selection: 'rgba(0, 255, 65, 0.3)',
-            prompt: '#00aaff',
-        },
-        surveillance: {
-            active: '#ff00aa',
-            tracking: '#ffaa00',
-            offline: '#444444',
-        },
-        action: {
-            play: '#00ff41',
-            stop: '#ff0040',
         },
     },
 
@@ -400,6 +280,10 @@ export function getSystemThemePreference() {
  * @returns {object} Theme configuration object
  */
 export function getThemeConfig(themeName) {
+    if (themeName === 'dark-neutral') {
+        themeName = 'slate-blue';
+    }
+
     // Handle 'auto' theme by detecting system preference
     if (themeName === 'auto') {
         const systemTheme = getSystemThemePreference();
@@ -416,13 +300,10 @@ export function getAvailableThemesWithMetadata() {
     return [
         { id: 'auto', name: 'Auto (System)' },
         { id: 'dark', name: 'Dark' },
-        { id: 'dark-neutral', name: 'Dark Neutral (Candidate 1)' },
+        { id: 'slate-blue', name: 'Slate Blue' },
         { id: 'light', name: 'Light' },
-        { id: 'high-contrast', name: 'High Contrast' },
         { id: 'night', name: 'Night (OLED)' },
-        { id: 'sunset-orange', name: 'Sunset Orange' },
         { id: 'stalker', name: 'S.T.A.L.K.E.R.' },
-        { id: 'terminal', name: 'Terminal' },
         { id: 'sonar', name: 'Sonar' },
     ];
 }

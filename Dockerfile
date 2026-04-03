@@ -218,7 +218,6 @@ RUN git clone --depth=1 https://github.com/hydrasdr/SoapyHydraSDR.git && \
 
 # Install SDRplay API (prerequisite for SoapySDRPlay3)
 WORKDIR /src
-RUN apt-get update && apt-get install -y libusb-1.0-0 libudev1 && rm -rf /var/lib/apt/lists/*
 RUN wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.2.run && \
     chmod +x SDRplay_RSP_API-Linux-3.15.2.run && \
     ./SDRplay_RSP_API-Linux-3.15.2.run --tar -xvf && \

@@ -130,32 +130,45 @@ test.describe('Preferences Persistence', () => {
     await themeSelect.click();
     const allThemeOptions = page.getByRole('option');
     const optionCount = await allThemeOptions.count();
+    let currentlySelectedThemeName = null;
     let selectedThemeName = null;
 
     for (let i = 0; i < optionCount; i++) {
       const option = allThemeOptions.nth(i);
       const optionName = (await option.innerText()).trim();
-      if (optionName && !/auto\s*\(system\)/i.test(optionName)) {
+      const isSelected = (await option.getAttribute('aria-selected')) === 'true';
+      if (isSelected) {
+        currentlySelectedThemeName = optionName;
+      }
+      if (optionName && optionName !== currentlySelectedThemeName) {
         selectedThemeName = optionName;
         await option.click();
         break;
       }
     }
 
+    if (!selectedThemeName) {
+      for (let i = 0; i < optionCount; i++) {
+        const option = allThemeOptions.nth(i);
+        const optionName = (await option.innerText()).trim();
+        if (optionName && optionName !== currentlySelectedThemeName) {
+          selectedThemeName = optionName;
+          await option.click();
+          break;
+        }
+      }
+    }
+
     expect(selectedThemeName).not.toBeNull();
 
-    await page.getByRole('button', { name: /save preferences|enregistrer/i }).click();
+    const saveButton = page.getByTestId('preferences-save-button');
+    await expect(saveButton).toBeEnabled({ timeout: 15000 });
+    await saveButton.click();
     await page.waitForTimeout(2000);
     await page.waitForLoadState('domcontentloaded');
 
     await themeSelect.click();
     await expect(page.getByRole('option', { name: selectedThemeName })).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Escape');
-
-    await themeSelect.click();
-    await page.getByRole('option', { name: 'Auto (System)' }).click();
-    await page.getByRole('button', { name: /save preferences|enregistrer/i }).click();
-    await page.waitForTimeout(2000);
-    await page.waitForLoadState('domcontentloaded');
   });
 });

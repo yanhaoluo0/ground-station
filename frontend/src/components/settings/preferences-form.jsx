@@ -27,6 +27,7 @@ import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
+    Alert,
     Backdrop,
     Box,
     Button,
@@ -647,6 +648,7 @@ const PreferencesForm = () => {
                                     color="primary"
                                     disabled={!isDirty || isSaving || isLoading}
                                     onClick={handleSavePreferences}
+                                    data-testid="preferences-save-button"
                                 >
                                     {isSaving || isLoading
                                         ? t('preferences.saving_button', { defaultValue: 'Saving...' })

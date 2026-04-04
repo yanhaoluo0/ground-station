@@ -354,6 +354,7 @@ const SatelliteMapContainer = ({ satelliteData }) => {
 
     return (
         <MapContainer
+            className="satellite-details-map"
             center={[0, 0]}
             zoom={mapZoomLevel}
             style={{ width: '100%', height: '100%' }}

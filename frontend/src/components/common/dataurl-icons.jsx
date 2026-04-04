@@ -141,10 +141,10 @@ export const satelliteIcon = new LeafletIcon ({
 
 export const satelliteIcon2 = divIcon({
     className: 'overview-satellite-test-icon',
-    html: '<div style="width:12px;height:12px;background:#38bdf8;border:1px solid #e0f2fe;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(0,0,0,0.55),0 0 7px rgba(56,189,248,0.75);display:flex;align-items:center;justify-content:center;"><div style="width:3px;height:3px;background:#f8fafc;border-radius:50%;transform:rotate(-45deg);"></div></div>',
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -6],
+    html: '<div style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><div style="width:12px;height:12px;background:#38bdf8;border:1px solid #e0f2fe;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(0,0,0,0.55),0 0 7px rgba(56,189,248,0.75);display:flex;align-items:center;justify-content:center;"><div style="width:3px;height:3px;background:#f8fafc;border-radius:50%;transform:rotate(-45deg);"></div></div></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
 });
 
 export const homeIcon = new LeafletIcon ({

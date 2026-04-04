@@ -297,16 +297,31 @@ const TargetSatelliteTransmittersIsland = () => {
                     borderBottom: '1px solid',
                     borderColor: 'border.main',
                     backdropFilter: 'blur(10px)',
-                    minHeight: 40
+                    height: 30,
+                    minHeight: 30
                 }}
             >
-                <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <Typography variant="subtitle2" sx={{fontWeight: 800, letterSpacing: '0.2px'}}>
+                <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 1, minWidth: 0}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', minWidth: 0, flex: 1}}>
+                        <Typography
+                            variant="subtitle2"
+                            noWrap
+                            sx={{
+                                fontWeight: 800,
+                                letterSpacing: '0.2px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
                             {t('satellite_transmitters.title')}
                         </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{color: 'text.secondary', fontWeight: 700}}>
+                    <Typography
+                        variant="caption"
+                        noWrap
+                        sx={{color: 'text.secondary', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap'}}
+                    >
                         {t('satellite_transmitters.count')}: {totalTransmitters}
                     </Typography>
                 </Box>

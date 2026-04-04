@@ -579,6 +579,7 @@ const TargetSatelliteMapContainer = ({}) => {
                 </Box>
             </TitleBar>
             <MapContainer
+                className="target-map"
                 center={satellitePosition?.lat && satellitePosition?.lon ? [satellitePosition.lat, satellitePosition.lon] : [0, 0]}
                 zoom={mapZoomLevel}
                 style={{width: '100%', height: 'calc(100% - 60px)'}}

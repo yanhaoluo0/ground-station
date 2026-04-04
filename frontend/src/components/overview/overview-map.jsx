@@ -91,10 +91,10 @@ L.Icon.Default.mergeOptions({
 const storageMapZoomValueKey = 'overview-map-zoom-level';
 const satelliteIconDimCircle = L.divIcon({
     className: 'overview-satellite-dim-icon',
-    html: '<div style="width:10px;height:10px;border-radius:50%;background:#38bdf8;border:1px solid #e0f2fe;box-shadow:0 0 0 1px rgba(0,0,0,0.45),0 0 5px rgba(56,189,248,0.45);"></div>',
-    iconSize: [10, 10],
-    iconAnchor: [5, 5],
-    popupAnchor: [0, -5],
+    html: '<div style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;border-radius:50%;background:#38bdf8;border:1px solid #e0f2fe;box-shadow:0 0 0 1px rgba(0,0,0,0.45),0 0 5px rgba(56,189,248,0.45);"></div></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
 });
 
 const CenterHomeButton = React.memo(function CenterHomeButton() {
@@ -765,6 +765,7 @@ const SatelliteMapContainer = ({handleSetTrackingOnBackend}) => {
                     <CircularProgress size={60} thickness={4} />
                 </Backdrop>
                 <MapContainer
+                    className="overview-map"
                     fullscreenControl={true}
                     center={[0, 0]}
                     zoom={mapZoomLevel}

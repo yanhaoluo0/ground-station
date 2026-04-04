@@ -115,6 +115,65 @@ def get_image_dimensions(image_path: str) -> Tuple[Any, ...]:
         return (None, None)
 
 
+def choose_decoded_folder_thumbnail_url(images: List[Dict[str, Any]]) -> Union[str, None]:
+    """
+    Pick a representative thumbnail for SatDump decoded folders.
+
+    Preference order:
+    1) Map overlays (_map.png), because they provide best geographic context
+    2) RGB composites
+    3) Any available image
+    """
+    if not images:
+        return None
+
+    def score_image(img: Dict[str, Any]) -> int:
+        filename = str(img.get("filename", "")).lower()
+        path = str(img.get("path", "")).lower()
+        combined = f"{path}/{filename}"
+        score = 0
+
+        if filename == "rgb_msu_mr_rgb_avhrr_3a21_false_color_projected.png":
+            score += 300
+        if "_projected" in filename:
+            score += 180
+        # Prefer map overlays first.
+        if filename.endswith("_map.png"):
+            score += 120
+        if "corrected_map" in combined:
+            score -= 10
+
+        if "rgb" in combined:
+            score += 60
+        if "false_color" in combined or "false color" in combined:
+            score += 20
+        if "msa" in combined:
+            score += 10
+        if "mcir" in combined:
+            score += 20
+
+        if "msu-mr-1.png" in combined or "msu-mr-2.png" in combined or "msu-mr-3.png" in combined:
+            score -= 20
+
+        width = img.get("width")
+        height = img.get("height")
+        if isinstance(width, int) and isinstance(height, int) and width > 0 and height > 0:
+            aspect = width / height
+            if 1.0 <= aspect <= 2.5:
+                score += 8
+            elif aspect < 0.6 or aspect > 3.5:
+                score -= 8
+
+        return score
+
+    # Stable tie-breaker by path/filename keeps behavior deterministic.
+    best = max(
+        images,
+        key=lambda img: (score_image(img), str(img.get("path", "")), str(img.get("filename", ""))),
+    )
+    return best.get("url")
+
+
 def parse_transcription_metadata(transcription_file_path: str) -> Dict[str, Any]:
     """
     Parse metadata from a transcription file header.
@@ -605,18 +664,15 @@ async def filebrowser_request_routing(sio, cmd, data, logger, sid):
                                 f"{parts[2]}_{parts[3]}" if len(parts) >= 4 else parts[2]
                             )
 
-                    # Get thumbnail (prefer MCIR RGB composite)
-                    thumbnail_url = None
-                    for img in images:
-                        if (
-                            "rgb_MCIR" in img["filename"]
-                            and not img["filename"].endswith("_map.png")
-                            and "corrected" not in img["filename"]
-                        ):
-                            thumbnail_url = img["url"]
-                            break
-                    if not thumbnail_url and images:
-                        thumbnail_url = images[0]["url"]  # Fallback to first image
+                    # Prefer actual projected/map product images first; use generated thumbnail only as fallback.
+                    thumbnail_url = choose_decoded_folder_thumbnail_url(images)
+                    if not thumbnail_url:
+                        generated_thumb = folder / "thumbnail.jpg"
+                        if generated_thumb.exists() and generated_thumb.is_file():
+                            thumb_version = int(generated_thumb.stat().st_mtime)
+                            thumbnail_url = (
+                                f"/decoded/{folder.name}/{generated_thumb.name}?v={thumb_version}"
+                            )
 
                     processed_items.append(
                         {

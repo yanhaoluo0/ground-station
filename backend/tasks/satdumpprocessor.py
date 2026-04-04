@@ -14,6 +14,8 @@ from multiprocessing import Queue
 from pathlib import Path
 from typing import Optional
 
+from PIL import Image
+
 
 class GracefulKiller:
     """Handle SIGTERM gracefully within the process."""
@@ -83,6 +85,80 @@ def _is_directory_empty(directory: Path) -> bool:
             return False
 
     return True
+
+
+def _pick_map_thumbnail_source(output_path: Path) -> Optional[Path]:
+    """
+    Pick the best map image from SatDump output to generate a card thumbnail.
+    """
+    pngs = list(output_path.rglob("*.png"))
+    if not pngs:
+        return None
+
+    def score(path: Path) -> int:
+        name = path.name.lower()
+        full = str(path).lower()
+        value = 0
+        # Best visual for METEOR in this pipeline: projected false-color overlay.
+        if name == "rgb_msu_mr_rgb_avhrr_3a21_false_color_projected.png":
+            value += 300
+        if "_projected" in name:
+            value += 180
+        if name.endswith("_map.png"):
+            value += 120
+        if "corrected_map" in full:
+            value -= 10
+        if "rgb" in full:
+            value += 30
+        return value
+
+    return max(pngs, key=lambda p: (score(p), str(p)))
+
+
+def _generate_decoded_thumbnail(
+    output_path: Path, progress_queue: Optional[Queue] = None
+) -> Optional[Path]:
+    """
+    Generate a stable decoded-folder thumbnail file at output root.
+    """
+    source = _pick_map_thumbnail_source(output_path)
+    if not source:
+        return None
+
+    thumb_path = output_path / "thumbnail.jpg"
+
+    try:
+        with Image.open(source) as img:
+            # 16:9 target fits file-browser cards.
+            # Preserve full map content (no center-crop), add subtle letterbox padding if needed.
+            target_w, target_h = 960, 540
+            rgb = img.convert("RGB")
+            rgb.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
+            canvas = Image.new("RGB", (target_w, target_h), color=(10, 10, 10))
+            x = (target_w - rgb.width) // 2
+            y = (target_h - rgb.height) // 2
+            canvas.paste(rgb, (x, y))
+            canvas.save(thumb_path, format="JPEG", quality=88, optimize=True)
+
+        if progress_queue:
+            progress_queue.put(
+                {
+                    "type": "output",
+                    "output": f"Generated folder thumbnail from: {source.name}",
+                    "stream": "stdout",
+                }
+            )
+        return thumb_path
+    except Exception as e:
+        if progress_queue:
+            progress_queue.put(
+                {
+                    "type": "output",
+                    "output": f"Warning: thumbnail generation failed: {e}",
+                    "stream": "stderr",
+                }
+            )
+        return None
 
 
 def satdump_process_recording(
@@ -348,6 +424,7 @@ def satdump_process_recording(
 
         # SatDump v1.2.x returns exit code 1 even when decoding succeeded
         if return_code == 0 or (return_code == 1 and has_output):
+            _generate_decoded_thumbnail(output_path, _progress_queue)
             if _progress_queue:
                 _progress_queue.put(
                     {

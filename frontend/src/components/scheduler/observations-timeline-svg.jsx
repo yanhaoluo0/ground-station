@@ -81,9 +81,8 @@ const ObservationsTimeline = () => {
     const marginBottom = 30;
     const marginLeft = 30;
     const marginRight = 30;
-    const barHeight = 30;
     const barSpacing = 5;
-    const rowHeight = barHeight + barSpacing;
+    const rowHeight = 35;
 
     // Filter observations within the time window
     const filteredObservations = useMemo(() => {
@@ -235,6 +234,9 @@ const ObservationsTimeline = () => {
     }, [filteredObservations, durationHours, width, marginLeft, marginRight, groundStationLocation, staticNow]);
 
     const height = Math.max(200, requiredRows * rowHeight + marginTop + marginBottom);
+    const drawableHeight = height - marginTop - marginBottom;
+    const renderRowHeight = drawableHeight / requiredRows;
+    const renderBarHeight = Math.max(24, renderRowHeight - barSpacing);
 
     const now = staticNow;
     const halfDuration = durationHours / 2;
@@ -458,9 +460,9 @@ const ObservationsTimeline = () => {
 
                         {/* Observation events */}
                         {layoutData.map(({ obs, startX, barWidth, rowIndex }) => {
-                            const y = marginTop + (rowIndex * rowHeight);
-                            const endX = startX + barWidth;
+                            const y = marginTop + (rowIndex * renderRowHeight) + ((renderRowHeight - renderBarHeight) / 2);
                             const barColor = getBarColor(obs);
+                            const label = obs.satellite?.name || 'Unknown';
 
                             return (
                                 <g
@@ -473,9 +475,9 @@ const ObservationsTimeline = () => {
                                     {/* Filled area */}
                                     <rect
                                         x={startX}
-                                        y={marginTop}
+                                        y={y}
                                         width={barWidth}
-                                        height={height - marginTop - marginBottom}
+                                        height={renderBarHeight}
                                         fill={barColor}
                                         opacity={hoveredObservation?.id === obs.id ? 0.4 : 0.3}
                                     />
@@ -483,16 +485,16 @@ const ObservationsTimeline = () => {
                                     {barWidth > 5 && (
                                         <text
                                             x={startX + barWidth / 2}
-                                            y={(marginTop + height - marginBottom) / 2}
+                                            y={y + (renderBarHeight / 2)}
                                             fontSize="9"
                                             fontWeight="600"
                                             fill={!obs.enabled ? '#666' : (theme.palette.mode === 'dark' ? '#fff' : '#000')}
                                             textAnchor="middle"
                                             dominantBaseline="middle"
-                                            transform={`rotate(-90, ${startX + barWidth / 2}, ${(marginTop + height - marginBottom) / 2})`}
+                                            transform={`rotate(-90, ${startX + barWidth / 2}, ${y + (renderBarHeight / 2)})`}
                                             style={{ pointerEvents: 'none' }}
                                         >
-                                            {obs.satellite.name || 'Unknown'}
+                                            {label}
                                         </text>
                                     )}
                                 </g>

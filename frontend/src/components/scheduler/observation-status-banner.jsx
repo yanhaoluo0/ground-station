@@ -22,7 +22,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Box, Paper, Typography, Chip, Stack, Button, Tooltip, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { AccessTime, RadioButtonChecked, Satellite, Router, Visibility, Cancel, Stop } from '@mui/icons-material';
 import { useSocket } from '../common/socket.jsx';
-import { cancelRunningObservation } from './scheduler-slice.jsx';
+import { cancelRunningObservation, setDialogOpen, setSelectedObservation } from './scheduler-slice.jsx';
 import { getFlattenedTasks, getSessionSdrs } from './session-utils.js';
 import { useUserTimeSettings } from '../../hooks/useUserTimeSettings.jsx';
 import { formatTime as formatTimeHelper } from '../../utils/date-time.js';
@@ -82,6 +82,11 @@ export default function ObservationStatusBanner() {
     // Handler for closing dialog
     const handleCloseDialog = () => {
         setConfirmDialogOpen(false);
+    };
+
+    const handleCreateObservation = () => {
+        dispatch(setSelectedObservation(null));
+        dispatch(setDialogOpen(true));
     };
 
 
@@ -171,6 +176,13 @@ export default function ObservationStatusBanner() {
                     <Typography variant="body2" color="text.secondary">
                         No active or upcoming observations scheduled
                     </Typography>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={handleCreateObservation}
+                    >
+                        Create observation
+                    </Button>
                 </Stack>
             </Paper>
         );

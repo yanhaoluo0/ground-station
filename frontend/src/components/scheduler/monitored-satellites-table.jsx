@@ -187,6 +187,22 @@ const MonitoredSatellitesTable = () => {
         }
     };
 
+    const NoRowsOverlay = () => (
+        <Stack
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ height: '100%', px: 2, textAlign: 'center' }}
+        >
+            <Typography variant="body2" color="text.secondary">
+                No monitored satellites configured.
+            </Typography>
+            <Button size="small" variant="outlined" onClick={handleAdd}>
+                Add monitored satellite
+            </Button>
+        </Stack>
+    );
+
     const columns = [
         {
             field: 'enabled',
@@ -351,7 +367,7 @@ const MonitoredSatellitesTable = () => {
 
     return (
         <Paper elevation={3} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
                 Monitored Satellites
             </Typography>
 
@@ -379,17 +395,22 @@ const MonitoredSatellitesTable = () => {
                         },
                     }}
                     pageSizeOptions={[5, 10, 25, {value: -1, label: 'All'}]}
+                    slots={{
+                        noRowsOverlay: NoRowsOverlay,
+                    }}
                     localeText={{
                         noRowsLabel: 'No monitored satellites'
                     }}
                     sx={{
                         border: 0,
                         backgroundColor: 'background.paper',
-                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                            outline: 'none',
+                        [`& .${gridClasses.cell}:focus-visible, & .${gridClasses.cell}:focus-within`]: {
+                            outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+                            outlineOffset: '-2px',
                         },
-                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
-                            outline: 'none',
+                        [`& .${gridClasses.columnHeader}:focus-visible, & .${gridClasses.columnHeader}:focus-within`]: {
+                            outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+                            outlineOffset: '-2px',
                         },
                         '& .MuiDataGrid-overlay': {
                             fontSize: '0.875rem',

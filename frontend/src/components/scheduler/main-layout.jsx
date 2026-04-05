@@ -38,21 +38,34 @@ export default function ScheduledObservationsLayout() {
                 flexDirection: 'column',
                 p: 2,
                 gap: 2,
-                overflow: 'hidden',
+                overflow: 'auto',
                 position: 'relative',
             }}
         >
             {/* Status Banner - Shows running or next observation */}
             <ObservationStatusBanner />
 
-            {/* Monitored Satellites - Top Section */}
-            <Box sx={{ height: '667px' }}>
-                <MonitoredSatellitesTable />
-            </Box>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gap: 2,
+                    minHeight: 0,
+                    gridTemplateRows: {
+                        xs: 'minmax(340px, auto) minmax(520px, auto)',
+                        lg: 'minmax(320px, 42vh) minmax(520px, 1fr)',
+                    },
+                    flex: 1,
+                }}
+            >
+                {/* Monitored Satellites - Top Section */}
+                <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+                    <MonitoredSatellitesTable />
+                </Box>
 
-            {/* Scheduled Observations - Bottom Section */}
-            <Box sx={{ minHeight: '600px', overflow: 'hidden' }}>
-                <ObservationsTable />
+                {/* Scheduled Observations - Bottom Section */}
+                <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+                    <ObservationsTable />
+                </Box>
             </Box>
 
             <ObservationFormDialog />

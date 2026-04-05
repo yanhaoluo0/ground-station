@@ -30,18 +30,14 @@ import {
     Typography,
     Paper,
     Alert,
-    AlertTitle,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
-    ToggleButton,
-    ToggleButtonGroup,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
     Edit as EditIcon,
-    PlayArrow as PlayIcon,
     Stop as StopIcon,
     Add as AddIcon,
     ContentCopy as ContentCopyIcon,
@@ -55,7 +51,6 @@ import { useSocket } from '../common/socket.jsx';
 import {
     fetchScheduledObservations,
     deleteScheduledObservations,
-    toggleObservationEnabledLocal,
     toggleObservationEnabled,
     cancelRunningObservation,
     setSelectedObservation,
@@ -67,7 +62,7 @@ import {
     setOpenObservationDataDialog,
     setSelectedObservationForData,
 } from './scheduler-slice.jsx';
-import { TitleBar, getTimeFromISO, humanizeFutureDateInMinutes } from '../common/common.jsx';
+import { getTimeFromISO, humanizeFutureDateInMinutes } from '../common/common.jsx';
 import { useUserTimeSettings } from '../../hooks/useUserTimeSettings.jsx';
 import { formatDateTime } from '../../utils/date-time.js';
 import Button from '@mui/material/Button';
@@ -134,6 +129,7 @@ const ObservationsTable = () => {
 
     const allObservations = useSelector((state) => state.scheduler?.observations || []);
     const loading = useSelector((state) => state.scheduler?.loading || false);
+    const error = useSelector((state) => state.scheduler?.error);
     const columnVisibility = useSelector((state) => state.scheduler?.columnVisibility || {});
     const statusFilters = useSelector((state) => state.scheduler?.statusFilters || {});
     const selectedIds = useSelector((state) => state.scheduler?.selectedObservationIds || []);
@@ -293,6 +289,36 @@ const ObservationsTable = () => {
         dispatch(setOpenObservationDataDialog(false));
         dispatch(setSelectedObservationForData(null));
     };
+
+    const handleShowAllStatuses = () => {
+        Object.entries(statusFilters).forEach(([status, enabled]) => {
+            if (!enabled) {
+                dispatch(toggleStatusFilter(status));
+            }
+        });
+    };
+
+    const NoRowsOverlay = () => (
+        <Stack
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ height: '100%', px: 2, textAlign: 'center' }}
+        >
+            <Typography variant="body2" color="text.secondary">
+                {allObservations.length === 0
+                    ? 'No scheduled observations yet.'
+                    : 'No observations match the selected status filters.'}
+            </Typography>
+            <Button
+                size="small"
+                variant="outlined"
+                onClick={allObservations.length === 0 ? handleAdd : handleShowAllStatuses}
+            >
+                {allObservations.length === 0 ? 'Create observation' : 'Show all statuses'}
+            </Button>
+        </Stack>
+    );
 
     const columns = [
         {
@@ -511,7 +537,7 @@ const ObservationsTable = () => {
 
             {/* Title and Status Filters */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2, mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
                     Scheduled Observations
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
@@ -540,6 +566,34 @@ const ObservationsTable = () => {
                     ))}
                 </Stack>
             </Stack>
+
+            {error && (
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2, flexShrink: 0 }}
+                    action={
+                        <Button color="inherit" size="small" onClick={() => socket && dispatch(fetchScheduledObservations({ socket }))}>
+                            Retry
+                        </Button>
+                    }
+                >
+                    Could not load scheduled observations. Check backend connection and retry.
+                </Alert>
+            )}
+
+            {!loading && !error && allObservations.length > 0 && observations.length === 0 && (
+                <Alert
+                    severity="info"
+                    sx={{ mb: 2, flexShrink: 0 }}
+                    action={
+                        <Button color="inherit" size="small" onClick={handleShowAllStatuses}>
+                            Show all
+                        </Button>
+                    }
+                >
+                    All rows are hidden by status filters.
+                </Alert>
+            )}
 
             <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
                 <DataGrid
@@ -586,17 +640,22 @@ const ObservationsTable = () => {
                         },
                     }}
                     pageSizeOptions={[10, 25, 50, {value: -1, label: 'All'}]}
+                    slots={{
+                        noRowsOverlay: NoRowsOverlay,
+                    }}
                     localeText={{
                         noRowsLabel: 'No scheduled observations'
                     }}
                     sx={{
                         border: 0,
                         backgroundColor: 'background.paper',
-                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                            outline: 'none',
+                        [`& .${gridClasses.cell}:focus-visible, & .${gridClasses.cell}:focus-within`]: {
+                            outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+                            outlineOffset: '-2px',
                         },
-                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]: {
-                            outline: 'none',
+                        [`& .${gridClasses.columnHeader}:focus-visible, & .${gridClasses.columnHeader}:focus-within`]: {
+                            outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+                            outlineOffset: '-2px',
                         },
                         [`& .${gridClasses.row}.status-running`]: {
                             backgroundColor: (theme) => theme.palette.mode === 'dark'

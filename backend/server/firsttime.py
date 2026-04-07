@@ -46,6 +46,10 @@ async def first_time_initialization():
                     "http://www.celestrak.com/NORAD/elements/cubesat.txt",
                 ),
                 (
+                    "Amateur",
+                    "http://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle",
+                ),
+                (
                     "NOAA",
                     "http://celestrak.org/NORAD/elements/gp.php?GROUP=noaa&FORMAT=tle",
                 ),
@@ -75,7 +79,7 @@ async def first_time_initialization():
             await session.commit()
             logger.info(
                 "Initial data populated successfully with default TLE sources: "
-                "Cubesats, NOAA, Space stations, Weather, TinyGS."
+                "Cubesats, Amateur, NOAA, Space stations, Weather, TinyGS."
             )
 
         except Exception as e:

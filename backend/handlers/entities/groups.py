@@ -65,11 +65,12 @@ async def get_satellite_groups_user(
     async with AsyncSessionLocal() as dbsession:
         logger.debug(f"Getting user satellite groups, data: {data}")
         satellite_groups = await crud.groups.fetch_satellite_group(dbsession)
+        groups_data = satellite_groups.get("data") or []
 
         # Only return the user groups
         filtered_groups = [
             satellite_group
-            for satellite_group in satellite_groups["data"]
+            for satellite_group in groups_data
             if satellite_group["type"] == SatelliteGroupType.USER
         ]
 
@@ -94,11 +95,12 @@ async def get_satellite_groups_system(
     async with AsyncSessionLocal() as dbsession:
         logger.debug(f"Getting system satellite groups, data: {data}")
         satellite_groups = await crud.groups.fetch_satellite_group(dbsession)
+        groups_data = satellite_groups.get("data") or []
 
         # Only return the system groups
         filtered_groups = [
             satellite_group
-            for satellite_group in satellite_groups["data"]
+            for satellite_group in groups_data
             if satellite_group["type"] == SatelliteGroupType.SYSTEM
         ]
         return {"success": satellite_groups["success"], "data": filtered_groups}

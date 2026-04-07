@@ -456,6 +456,12 @@ const MemoizedStyledDataGrid = React.memo(({
     return (
         <StyledDataGrid
             loading={loadingSatellites}
+            slotProps={{
+                loadingOverlay: {
+                    variant: 'linear-progress',
+                    noRowsVariant: 'linear-progress',
+                },
+            }}
             apiRef={apiRef}
             pageSizeOptions={[5, 10, 15, 20, 50]}
             fullWidth={true}

@@ -884,6 +884,12 @@ const MemoizedStyledDataGrid = React.memo(function MemoizedStyledDataGrid({
             pageSizeOptions={[5, 10, 15, 20]}
             fullWidth={true}
             loading={passesLoading}
+            slotProps={{
+                loadingOverlay: {
+                    variant: 'linear-progress',
+                    noRowsVariant: 'linear-progress',
+                },
+            }}
             getRowClassName={getPassesRowStyles}
             onRowClick={onRowClick}
             onRowDoubleClick={onRowDoubleClick}
@@ -1380,7 +1386,7 @@ const NextPassesGroupIsland = React.memo(function NextPassesGroupIsland() {
                 }}>
                     <MemoizedStyledDataGrid
                         passes={passes}
-                        passesLoading={passesLoading}
+                        passesLoading={Boolean(selectedSatGroupId) && (passesLoading || loadingSatellites)}
                         quickFilterPreset={quickFilterPreset}
                         trackedSatelliteName={trackedSatelliteName}
                         trackedSatelliteNoradId={trackedSatelliteNoradId}

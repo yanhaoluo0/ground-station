@@ -82,7 +82,9 @@ class JsonField(TypeDecorator):
         """
         When reading from DB, deserialize JSON string to Python object.
         """
-        if value is not None:
+        # Some dialects/DB drivers already return JSON columns as Python
+        # objects (dict/list). Only decode when we receive a JSON string.
+        if isinstance(value, (str, bytes, bytearray)):
             return json.loads(value)
         return value
 

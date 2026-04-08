@@ -235,6 +235,20 @@ const BookmarkCanvas = ({
         const verticalSpacing = textHeight + padding * 2 + labelGap; // Total height of a label plus gap
         const baseY = 16; // Base Y position for the first label
         const bookmarkLabelOffset = 20; // Vertical offset from base position for bookmark labels
+        const maxLabelTextWidth = 220;
+
+        const truncateLabelToWidth = (text) => {
+            const labelText = String(text ?? '');
+            if (ctx.measureText(labelText).width <= maxLabelTextWidth) {
+                return labelText;
+            }
+            const suffix = '...';
+            let truncated = labelText;
+            while (truncated.length > 0 && ctx.measureText(`${truncated}${suffix}`).width > maxLabelTextWidth) {
+                truncated = truncated.slice(0, -1);
+            }
+            return `${truncated}${suffix}`;
+        };
 
         // First, identify all transmitter IDs that have doppler shift bookmarks
         // We'll use this to skip the corresponding transmitter bookmarks
@@ -269,7 +283,7 @@ const BookmarkCanvas = ({
 
                 // Draw a downward-pointing arrow at the bottom of the canvas
                 ctx.beginPath();
-                const arrowSize = 6;
+                const arrowSize = 5;
                 const arrowY = height - arrowSize; // Position at bottom of canvas
 
                 // Draw the arrow path
@@ -280,7 +294,7 @@ const BookmarkCanvas = ({
 
                 // Fill the arrow for neighbor transmitters
                 ctx.fillStyle = bookmark.color || theme.palette.info.main;
-                ctx.globalAlpha = 1.0;
+                ctx.globalAlpha = 0.85;
                 ctx.fill();
 
                 // Variable to store the label bottom Y position for the dotted line
@@ -302,32 +316,39 @@ const BookmarkCanvas = ({
                     ctx.textAlign = 'center';
 
                     // Add semi-transparent background
-                    const hasAliveStatus = typeof bookmark.metadata?.alive === 'boolean';
+                    const hasAliveStatus = false;
                     const ledRadius = 2.5;
                     const ledGap = 5;
                     const ledReserve = hasAliveStatus ? (ledRadius * 2 + ledGap) : 0;
-                    const textMetrics = ctx.measureText(bookmark.label);
+                    const leftReserve = ledReserve;
+                    const displayLabel = truncateLabelToWidth(bookmark.label);
+                    const textMetrics = ctx.measureText(displayLabel);
                     const textWidth = textMetrics.width;
-                    const boxWidth = textWidth + padding * 2 + ledReserve;
+                    const boxWidth = textWidth + padding * 2 + leftReserve;
                     const radius = 3;
+                    const boxLeft = x - boxWidth / 2;
+                    const boxTop = labelY - padding;
+                    const boxHeight = textHeight + padding * 2;
 
                     ctx.beginPath();
                     ctx.roundRect(
-                        x - boxWidth / 2,
-                        labelY - padding,
+                        boxLeft,
+                        boxTop,
                         boxWidth,
-                        textHeight + padding * 2,
+                        boxHeight,
                         radius
                     );
                     const bgColor = theme.palette.background.paper;
+                    ctx.globalAlpha = 0.75;
                     ctx.fillStyle = bgColor.startsWith('#')
                         ? bgColor + 'E6'
                         : bgColor.replace(')', ', 0.9)');
                     ctx.fill();
+                    ctx.globalAlpha = 1.0;
 
                     // Add subtle border
-                    ctx.strokeStyle = bookmark.color || theme.palette.info.main;
-                    ctx.globalAlpha = 0.3;
+                    ctx.strokeStyle = theme.palette.divider;
+                    ctx.globalAlpha = 0.2;
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     ctx.globalAlpha = 1.0;
@@ -335,14 +356,14 @@ const BookmarkCanvas = ({
                     // Draw the text
                     ctx.shadowBlur = 2;
                     ctx.shadowColor = theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)';
-                    ctx.globalAlpha = 1.0;
-                    ctx.fillStyle = bookmark.color || theme.palette.info.main;
-                    const textX = hasAliveStatus ? x + (ledReserve / 2) : x;
-                    ctx.fillText(bookmark.label, textX, labelY + textHeight - padding);
+                    ctx.globalAlpha = 0.75;
+                    ctx.fillStyle = theme.palette.text.primary;
+                    const textX = x + (leftReserve / 2);
+                    ctx.fillText(displayLabel, textX, labelY + textHeight - padding);
                     ctx.globalAlpha = 1.0;
 
                     if (hasAliveStatus) {
-                        const ledX = x - boxWidth / 2 + padding + ledRadius;
+                        const ledX = boxLeft + padding + ledRadius;
                         const ledY = labelY + textHeight / 2;
                         ctx.beginPath();
                         ctx.arc(ledX, ledY, ledRadius, 0, 2 * Math.PI);
@@ -354,15 +375,18 @@ const BookmarkCanvas = ({
 
                     // Draw dotted line from bottom of canvas to south edge of label
                     ctx.beginPath();
-                    ctx.strokeStyle = bookmark.color || theme.palette.info.main;
+                    ctx.strokeStyle = theme.palette.text.secondary;
                     ctx.lineWidth = 0.8;
-                    ctx.setLineDash([2, 4]);
-                    ctx.globalAlpha = 0.9;
+                    ctx.setLineDash([1.5, 3]);
+                    ctx.globalAlpha = 0.35;
+                    ctx.shadowBlur = 1;
+                    ctx.shadowColor = theme.palette.background.paper;
                     ctx.moveTo(x, height); // Start from bottom
                     ctx.lineTo(x, labelBottomY); // End at south edge of label
                     ctx.stroke();
                     ctx.setLineDash([]); // Reset dash pattern
                     ctx.globalAlpha = 1.0;
+                    ctx.shadowBlur = 0;
 
                     // Increment the visible bookmark index
                     visibleBookmarkIndex++;
@@ -451,17 +475,22 @@ const BookmarkCanvas = ({
                     const ledRadius = 2.5;
                     const ledGap = 5;
                     const ledReserve = hasAliveStatus ? (ledRadius * 2 + ledGap) : 0;
-                    const textMetrics = ctx.measureText(bookmark.label);
+                    const leftReserve = ledReserve;
+                    const displayLabel = truncateLabelToWidth(bookmark.label);
+                    const textMetrics = ctx.measureText(displayLabel);
                     const textWidth = textMetrics.width;
-                    const boxWidth = textWidth + padding * 2 + ledReserve;
+                    const boxWidth = textWidth + padding * 2 + leftReserve;
                     const radius = 3;
+                    const boxLeft = x - boxWidth / 2;
+                    const boxTop = labelY - padding;
+                    const boxHeight = textHeight + padding * 2;
 
                     ctx.beginPath();
                     ctx.roundRect(
-                        x - boxWidth / 2,
-                        labelY - padding,
+                        boxLeft,
+                        boxTop,
                         boxWidth,
-                        textHeight + padding * 2,
+                        boxHeight,
                         radius
                     );
                     const bgColor = theme.palette.background.paper;
@@ -471,7 +500,7 @@ const BookmarkCanvas = ({
                     ctx.fill();
 
                     // Add subtle border
-                    ctx.strokeStyle = bookmark.color || theme.palette.warning.main;
+                    ctx.strokeStyle = theme.palette.divider;
                     ctx.globalAlpha = isInactive ? 0.2 : 0.3;
                     ctx.lineWidth = 1;
                     ctx.stroke();
@@ -481,13 +510,13 @@ const BookmarkCanvas = ({
                     ctx.shadowBlur = 2;
                     ctx.shadowColor = theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)';
                     ctx.globalAlpha = isInactive ? 0.6 : 1.0;
-                    ctx.fillStyle = bookmark.color || theme.palette.warning.main;
-                    const textX = hasAliveStatus ? x + (ledReserve / 2) : x;
-                    ctx.fillText(bookmark.label, textX, labelY + textHeight - padding);
+                    ctx.fillStyle = theme.palette.text.primary;
+                    const textX = x + (leftReserve / 2);
+                    ctx.fillText(displayLabel, textX, labelY + textHeight - padding);
                     ctx.globalAlpha = 1.0;
 
                     if (hasAliveStatus) {
-                        const ledX = x - boxWidth / 2 + padding + ledRadius;
+                        const ledX = boxLeft + padding + ledRadius;
                         const ledY = labelY + textHeight / 2;
                         ctx.beginPath();
                         ctx.arc(ledX, ledY, ledRadius, 0, 2 * Math.PI);
@@ -499,15 +528,18 @@ const BookmarkCanvas = ({
 
                     // Draw dotted line from bottom of canvas to south edge of label
                     ctx.beginPath();
-                    ctx.strokeStyle = bookmark.color || theme.palette.warning.main;
-                    ctx.lineWidth = isInactiveTransmitter ? 0.5 : 0.8;
-                    ctx.setLineDash([2, 4]);
-                    ctx.globalAlpha = isInactiveTransmitter ? 0.4 : 0.9;
+                    ctx.strokeStyle = theme.palette.text.secondary;
+                    ctx.lineWidth = isInactiveTransmitter ? 0.7 : 0.9;
+                    ctx.setLineDash([1.5, 3]);
+                    ctx.globalAlpha = isInactiveTransmitter ? 0.3 : 0.45;
+                    ctx.shadowBlur = 1;
+                    ctx.shadowColor = theme.palette.background.paper;
                     ctx.moveTo(x, height); // Start from bottom
                     ctx.lineTo(x, labelBottomY); // End at south edge of label
                     ctx.stroke();
                     ctx.setLineDash([]); // Reset dash pattern
                     ctx.globalAlpha = 1.0;
+                    ctx.shadowBlur = 0;
 
                     // Increment the visible bookmark index only for non-doppler bookmarks
                     visibleBookmarkIndex++;
@@ -541,17 +573,22 @@ const BookmarkCanvas = ({
                     const ledRadius = 2.5;
                     const ledGap = 5;
                     const ledReserve = hasAliveStatus ? (ledRadius * 2 + ledGap) : 0;
-                    const textMetrics = ctx.measureText(bookmark.label);
+                    const leftReserve = ledReserve;
+                    const displayLabel = truncateLabelToWidth(bookmark.label);
+                    const textMetrics = ctx.measureText(displayLabel);
                     const textWidth = textMetrics.width;
-                    const boxWidth = textWidth + padding * 2 + ledReserve;
+                    const boxWidth = textWidth + padding * 2 + leftReserve;
                     const radius = 3;
+                    const boxLeft = x - boxWidth / 2;
+                    const boxTop = dopplerLabelY - padding;
+                    const boxHeight = textHeight + padding * 2;
 
                     ctx.beginPath();
                     ctx.roundRect(
-                        x - boxWidth / 2,
-                        dopplerLabelY - padding,
+                        boxLeft,
+                        boxTop,
                         boxWidth,
-                        textHeight + padding * 2,
+                        boxHeight,
                         radius
                     );
                     const bgColor = theme.palette.background.paper;
@@ -561,7 +598,7 @@ const BookmarkCanvas = ({
                     ctx.fill();
 
                     // Add subtle border
-                    ctx.strokeStyle = bookmark.color || theme.palette.info.main;
+                    ctx.strokeStyle = theme.palette.divider;
                     ctx.globalAlpha = 0.3;
                     ctx.lineWidth = 1;
                     ctx.stroke();
@@ -571,12 +608,12 @@ const BookmarkCanvas = ({
                     ctx.shadowBlur = 2;
                     ctx.shadowColor = theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)';
                     ctx.globalAlpha = 1.0;
-                    ctx.fillStyle = bookmark.color || theme.palette.info.main;
-                    const textX = hasAliveStatus ? x + (ledReserve / 2) : x;
-                    ctx.fillText(bookmark.label, textX, dopplerLabelY + textHeight - padding);
+                    ctx.fillStyle = theme.palette.text.primary;
+                    const textX = x + (leftReserve / 2);
+                    ctx.fillText(displayLabel, textX, dopplerLabelY + textHeight - padding);
 
                     if (hasAliveStatus) {
-                        const ledX = x - boxWidth / 2 + padding + ledRadius;
+                        const ledX = boxLeft + padding + ledRadius;
                         const ledY = dopplerLabelY + textHeight / 2;
                         ctx.beginPath();
                         ctx.arc(ledX, ledY, ledRadius, 0, 2 * Math.PI);
@@ -588,15 +625,18 @@ const BookmarkCanvas = ({
 
                     // Draw dotted line from bottom of canvas to south edge of doppler label
                     ctx.beginPath();
-                    ctx.strokeStyle = bookmark.color || theme.palette.warning.main;
-                    ctx.lineWidth = 0.8;
-                    ctx.setLineDash([2, 4]);
-                    ctx.globalAlpha = 0.9;
+                    ctx.strokeStyle = theme.palette.text.secondary;
+                    ctx.lineWidth = 0.9;
+                    ctx.setLineDash([1.5, 3]);
+                    ctx.globalAlpha = 0.45;
+                    ctx.shadowBlur = 1;
+                    ctx.shadowColor = theme.palette.background.paper;
                     ctx.moveTo(x, height); // Start from bottom
                     ctx.lineTo(x, labelBottomY); // End at south edge of label
                     ctx.stroke();
                     ctx.setLineDash([]); // Reset dash pattern
                     ctx.globalAlpha = 1.0;
+                    ctx.shadowBlur = 0;
                 }
 
                 // Reset shadow
@@ -604,44 +644,6 @@ const BookmarkCanvas = ({
             });
         }
     }, [bookmarks, centerFrequency, sampleRate, actualWidth, height]);
-
-    // Handle click events on the canvas
-    const handleCanvasClick = useCallback((e) => {
-        if (!onBookmarkClick) return;
-
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const widthRatio = canvas.width / rect.width;
-        const canvasX = clickX * widthRatio;
-
-        // Calculate which bookmark was clicked (if any)
-        const freqRange = endFreq - startFreq;
-
-        // Convert click position to frequency
-        const clickedFreq = startFreq + (canvasX / canvas.width) * freqRange;
-
-        // Find the bookmark closest to the click (within a threshold)
-        const threshold = sampleRate * 0.01; // 1% of the frequency range
-        const clickedBookmark = bookmarks.find(bookmark =>
-            Math.abs(bookmark.frequency - clickedFreq) < threshold
-        );
-
-        if (clickedBookmark) {
-            onBookmarkClick(clickedBookmark);
-        }
-    }, [bookmarks, onBookmarkClick, startFreq, endFreq, sampleRate]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas || !onBookmarkClick) return;
-
-        canvas.addEventListener('click', handleCanvasClick);
-
-        return () => {
-            canvas.removeEventListener('click', handleCanvasClick);
-        };
-    }, [handleCanvasClick, onBookmarkClick]);
 
     return (
         <div
@@ -652,7 +654,7 @@ const BookmarkCanvas = ({
                 left: 0,
                 width: '100%',
                 height: `${height}px`,
-                pointerEvents: onBookmarkClick ? 'auto' : 'none',
+                pointerEvents: 'none',
             }}
         >
             <canvas

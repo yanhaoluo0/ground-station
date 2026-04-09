@@ -1,4 +1,4 @@
-[![Tests](https://github.com/sgoudelis/ground-station/actions/workflows/tests.yml/badge.svg)](https://github.com/sgoudelis/ground-station/actions/workflows/tests.yml) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Release](https://github.com/sgoudelis/ground-station/actions/workflows/release-from-images.yml/badge.svg?event=push)](https://github.com/sgoudelis/ground-station/actions/workflows/release-from-images.yml)
+[![Tests](https://github.com/yanhaoluo0/ground-station/actions/workflows/tests.yml/badge.svg)](https://github.com/yanhaoluo0/ground-station/actions/workflows/tests.yml) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Release](https://github.com/yanhaoluo0/ground-station/actions/workflows/release-from-images.yml/badge.svg?event=push)](https://github.com/yanhaoluo0/ground-station/actions/workflows/release-from-images.yml)
 
 # Ground Station
 
@@ -83,6 +83,83 @@ This project was built with the help of Claude Code and Codex.
 ---
 
 </div>
+
+## Project Structure
+
+```
+ground-station/
+├── backend/                    # Python FastAPI backend
+│   ├── alembic/               # Database migrations
+│   ├── audio/                 # Audio processing utilities
+│   ├── common/                # Shared utilities and types
+│   ├── constants/             # Application constants
+│   ├── controllers/           # API endpoint handlers
+│   ├── crud/                  # Database CRUD operations
+│   ├── data/                  # Data storage (recordings, transcriptions)
+│   ├── db/                    # Database models and session management
+│   ├── demodulators/          # FM/SSB/AM demodulator implementations
+│   ├── docs/                  # Documentation
+│   ├── fft/                   # FFT processing for spectrum/waterfall
+│   ├── handlers/              # Event handlers and routing
+│   ├── hardware/              # Hardware abstraction layer (SDR, rotators)
+│   ├── monitoring/            # Performance monitoring
+│   ├── observations/          # Automated observation scheduling
+│   ├── pipeline/             # Signal processing pipeline orchestration
+│   ├── satconfig/             # Satellite configuration
+│   ├── satimages/             # Satellite image processing
+│   ├── server/                # WebSocket/Socket.IO server
+│   ├── session/               # VFO session management
+│   ├── tasks/                 # Background task definitions
+│   ├── telemetry/             # Telemetry parsing and decoding
+│   ├── tests/                 # Backend unit tests
+│   ├── tlesync/               # TLE data synchronization
+│   ├── tools/                 # Utility tools
+│   ├── tracker/               # Satellite tracking calculations
+│   ├── tracking/              # Antenna/rig tracking control
+│   ├── vfos/                  # VFO (Virtual Frequency Oscillator) management
+│   ├── video/                 # Video processing utilities
+│   └── workers/               # Worker process definitions
+│
+├── frontend/                   # React + Redux + Material-UI frontend
+│   ├── public/                # Static assets and images
+│   ├── e2e/                   # End-to-end tests
+│   └── src/
+│       ├── assets/            # Frontend assets
+│       ├── components/        # React components
+│       │   ├── common/        # Shared/common components
+│       │   ├── dashboard/     # Dashboard page
+│       │   ├── decoders/      # Decoder UI components
+│       │   ├── filebrowser/   # File browser components
+│       │   ├── hardware/      # Hardware management UI
+│       │   ├── overview/      # Overview/satellite map page
+│       │   ├── performance/   # DSP performance monitoring
+│       │   ├── satellites/     # Satellite management components
+│       │   ├── scheduler/     # Observation scheduler UI
+│       │   ├── settings/      # Settings and maintenance pages
+│       │   ├── target/        # Target satellite tracking page
+│       │   ├── tasks/         # Task management components
+│       │   └── waterfall/     # Spectrum/waterfall display
+│       ├── config/            # Frontend configuration
+│       ├── constants/         # Frontend constants
+│       ├── hooks/             # Custom React hooks
+│       ├── i18n/              # Internationalization
+│       ├── services/          # API and WebSocket services
+│       ├── themes/            # MUI theme configurations
+│       └── utils/             # Utility functions
+│
+├── .github/                    # GitHub Actions workflows
+├── Dockerfile                 # Multi-stage Docker build
+├── docker-compose.yml         # Docker Compose configuration
+└── DEVELOPMENT.md             # Development setup guide
+```
+
+### Key Directories
+
+- **backend/workers/** - Worker processes for SDR streaming, FFT, demodulation, and decoding
+- **backend/pipeline/** - Signal processing pipeline orchestration and state management
+- **backend/observations/** - Automated satellite pass scheduling and execution
+- **frontend/src/components/** - React UI components organized by feature
+- **frontend/src/services/** - Socket.IO communication and API client services
 
 ## Key Features
 
@@ -555,4 +632,4 @@ This project uses the SatNOGS API for transmitter information.
 This project is licensed under the GNU GPL v3. See the [LICENSE](LICENSE) file for details.
 
 ![](https://hit.yhype.me/github/profile?account_id=4840328)
-![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fsgoudelis%2Fground-station&countColor=%23263759)
+![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fyanhaoluo0%2Fground-station&countColor=%23263759)
